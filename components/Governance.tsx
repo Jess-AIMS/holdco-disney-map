@@ -3,43 +3,91 @@
 import { useState } from "react";
 import SectionWrapper from "./SectionWrapper";
 
-// Hub-and-spoke layers
-const layers = [
-  {
-    name: "The Hub",
-    subtitle: "Shared Services",
-    color: "#6D5DD3",
-    description:
-      "SLT sits at the center with Finance, HR, and Tech/Ops as centrally governed infrastructure. These services are allocated as a fixed monthly cost to each entity. Every spoke draws from the hub rather than building duplicate functions.",
-    entities: ["Finance", "HR", "Tech/Ops", "SLT"],
-  },
-  {
-    name: "Business Units",
-    subtitle: "Revenue engines",
-    color: "#059669",
-    description:
-      "VendingPreneurs is the established BU with a full P&L, owning community delivery, VendHub, and customer success. The Incubator is where new offers are built, tested, and scaled before graduating to standalone BU status.",
-    entities: ["VendingPreneurs", "Incubator", "Future BUs"],
-  },
-  {
-    name: "BTC",
-    subtitle: "Sales engine",
-    color: "#2563EB",
-    description:
-      "BTC is the cross-cutting revenue acquisition layer for the entire platform. It sells all offers, earns a commission, and hands the customer back to the owning BU for fulfillment. The 40K+ lead database routes to whichever offer fits best.",
-    entities: ["Sales ops", "Lead routing", "CRM"],
-  },
-  {
-    name: "Functional Capabilities",
-    subtitle: "Internal agencies",
-    color: "#D97706",
-    description:
-      "Marketing/AIMS and Automations/Wild Ducks serve all BUs and BTC as internal service providers. They also generate external revenue. Time allocation across entities is made visible via the consolidated scorecard.",
-    entities: ["AIMS Marketing", "Wild Ducks", "Automations"],
-  },
-];
+// ── Clickable nodes for the diagram ──
+interface OrgNode {
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  color: string;
+  borderColor: string;
+  bgColor: string;
+}
 
-// Governance matrix (simplified for display)
+const orgNodes: Record<string, OrgNode> = {
+  slt: {
+    id: "slt",
+    name: "SLT",
+    subtitle: "Strategic direction & approval",
+    description:
+      "The Senior Leadership Team sits at the center. They own business strategy and the V/TO, approve major decisions, but rarely own execution. They set the guardrails and sign off.",
+    color: "#6B7280",
+    borderColor: "#D1D5DB",
+    bgColor: "#F9FAFB",
+  },
+  shared: {
+    id: "shared",
+    name: "Shared Services Hub",
+    subtitle: "Finance, HR, Tech/Ops",
+    description:
+      "Centrally governed infrastructure allocated as a fixed monthly cost to each entity. Every spoke draws from the hub rather than building duplicate functions. Shared services owns the \u201Chow\u201D \u2014 recruiting process, comp plans, tech standards.",
+    color: "#6D5DD3",
+    borderColor: "#6D5DD3",
+    bgColor: "#EDE9FE",
+  },
+  vp: {
+    id: "vp",
+    name: "VendingPreneurs",
+    subtitle: "Community + VendHub",
+    description:
+      "The established BU with a full P&L. Owns community delivery, VendHub marketplace, and customer success. 1,800 members. Reports to SLT, draws from shared services, hands fulfillment work to operators.",
+    color: "#2563EB",
+    borderColor: "#2563EB",
+    bgColor: "#DBEAFE",
+  },
+  aims: {
+    id: "aims",
+    name: "Marketing / AIMS",
+    subtitle: "Lead generation for all entities",
+    description:
+      "Shared marketing service generating leads for VP (YouTube, SEO, paid, organic), MA (LinkedIn, cold email, outbound), and MedPro. The AI marketing systems built here become products AIMS sells externally.",
+    color: "#059669",
+    borderColor: "#059669",
+    bgColor: "#D1FAE5",
+  },
+  wd: {
+    id: "wd",
+    name: "Automations / Wild Ducks",
+    subtitle: "AI R&D + product development",
+    description:
+      "Builds AI products and automation for internal companies as a testing ground, then productizes and sells externally. Serves all BUs and BTC as an internal service provider. Time allocation across entities is visible on the consolidated scorecard.",
+    color: "#D97706",
+    borderColor: "#D97706",
+    bgColor: "#FEF3C7",
+  },
+  btc: {
+    id: "btc",
+    name: "Sales Engine \u2014 BTC",
+    subtitle: "Sells all offers, earns commission, hands off fulfillment",
+    description:
+      "The cross-cutting revenue acquisition layer. BTC sells all offers \u2014 the original VP offer, external offers that expand the lead pool, and Incubator offers as they mature. The 40K+ lead database routes to whichever offer fits best. BUs don\u2019t build their own sales motion.",
+    color: "#DC2626",
+    borderColor: "#DC2626",
+    bgColor: "#FEE2E2",
+  },
+  inc: {
+    id: "inc",
+    name: "Incubator",
+    subtitle: "Build, test, scale",
+    description:
+      "New offers start here with a lightweight budget and small team, shielded from full shared services overhead. They run under a dedicated L10. When an offer hits a graduation threshold (revenue target, customer count, or SLT decision), it moves to standalone BU status with its own P&L.",
+    color: "#D97706",
+    borderColor: "#D97706",
+    bgColor: "#FEF3C7",
+  },
+};
+
+// ── Governance matrix ──
 type Role = "O" | "A" | "S" | "I";
 interface GovRow {
   area: string;
@@ -122,7 +170,8 @@ function RoleCell({ role }: { role: Role }) {
 }
 
 export default function Governance() {
-  const [activeLayer, setActiveLayer] = useState(0);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const active = selectedNode ? orgNodes[selectedNode] : null;
 
   return (
     <SectionWrapper id="governance">
@@ -133,60 +182,228 @@ export default function Governance() {
         Organizational structure &amp; governance
       </h2>
       <p className="text-[#6B7280] text-lg max-w-[720px] mb-12">
-        The holdco operates as a hub-and-spoke model with three distinct layers.
-        Each layer has clear decision rights so those closest to the market have
-        the autonomy to move, while the SLT maintains the bird&rsquo;s-eye view.
+        The holdco operates as a hub-and-spoke model. The SLT and shared
+        services sit at the center. Business units and functional capabilities
+        radiate outward. BTC sells across everything.
       </p>
 
-      {/* Hub-and-spoke visualization */}
-      <h3 className="font-[family-name:var(--font-playfair)] text-xl font-bold mb-6 text-[#111827]">
-        Hub-and-spoke model
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-16">
-        {layers.map((layer, i) => (
-          <button
-            key={layer.name}
-            onClick={() => setActiveLayer(i)}
-            className={`text-left border rounded-lg p-5 transition-all cursor-pointer ${
-              activeLayer === i
-                ? "shadow-md"
-                : "border-[#E5E7EB] bg-white hover:shadow-sm"
-            }`}
-            style={{
-              borderColor: activeLayer === i ? layer.color + "40" : undefined,
-              backgroundColor: activeLayer === i ? layer.color + "05" : undefined,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2">
+      {/* ══ HUB-AND-SPOKE DIAGRAM ══ */}
+      <div className="flex flex-col lg:flex-row gap-8 items-start mb-16">
+        <div className="flex-1 min-w-0">
+          {/* ── Top spoke: VendingPreneurs ── */}
+          <div className="flex justify-center mb-3">
+            <button
+              onClick={() => setSelectedNode(selectedNode === "vp" ? null : "vp")}
+              className={`border-2 rounded-lg px-5 py-3 text-center transition-all cursor-pointer ${
+                selectedNode === "vp" ? "shadow-md" : "hover:shadow-sm"
+              }`}
+              style={{
+                borderColor: selectedNode === "vp" ? orgNodes.vp.borderColor : "#93C5FD",
+                backgroundColor: selectedNode === "vp" ? orgNodes.vp.bgColor : "#EFF6FF",
+              }}
+            >
+              <p className="text-sm font-bold text-[#1E40AF]">VendingPreneurs</p>
+              <p className="text-[10px] text-[#6B7280]">community + VendHub</p>
+            </button>
+          </div>
+
+          {/* Vertical connector */}
+          <div className="flex justify-center mb-1">
+            <div className="w-px h-6 bg-[#D1D5DB]" />
+          </div>
+
+          {/* ── Middle row: AIMS — Hub — Wild Ducks ── */}
+          <div className="flex items-center justify-center gap-4 md:gap-6 mb-1">
+            {/* Left spoke: Marketing/AIMS */}
+            <button
+              onClick={() => setSelectedNode(selectedNode === "aims" ? null : "aims")}
+              className={`border-2 rounded-lg px-4 py-3 text-center transition-all cursor-pointer shrink-0 ${
+                selectedNode === "aims" ? "shadow-md" : "hover:shadow-sm"
+              }`}
+              style={{
+                borderColor: selectedNode === "aims" ? orgNodes.aims.borderColor : "#6EE7B7",
+                backgroundColor: selectedNode === "aims" ? orgNodes.aims.bgColor : "#ECFDF5",
+              }}
+            >
+              <p className="text-xs font-bold text-[#065F46]">Marketing</p>
+              <p className="text-[10px] text-[#6B7280]">AIMS</p>
+            </button>
+
+            {/* Horizontal connector left */}
+            <div className="h-px w-4 md:w-8 border-t-2 border-dashed border-[#D1D5DB]" />
+
+            {/* Center: SLT Hub */}
+            <button
+              onClick={() => setSelectedNode(selectedNode === "shared" ? null : "shared")}
+              className={`relative border-2 rounded-full w-32 h-32 md:w-40 md:h-40 flex flex-col items-center justify-center transition-all cursor-pointer shrink-0 ${
+                selectedNode === "shared" || selectedNode === "slt" ? "shadow-lg" : "hover:shadow-md"
+              }`}
+              style={{
+                borderColor: "#D1D5DB",
+                backgroundColor: "#FFFFFF",
+              }}
+            >
+              {/* SLT label */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedNode(selectedNode === "slt" ? null : "slt");
+                }}
+                className="text-sm md:text-base font-bold text-[#374151] hover:text-[#6D5DD3] transition-colors cursor-pointer"
+              >
+                SLT
+              </button>
+              {/* Shared services chips */}
+              <div className="flex gap-1 mt-2">
+                {["Finance", "HR", "Tech"].map((s) => (
+                  <span
+                    key={s}
+                    className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded bg-[#EDE9FE] text-[#6D5DD3] font-medium"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[8px] md:text-[9px] text-[#9CA3AF] mt-1.5">Shared services hub</p>
+            </button>
+
+            {/* Horizontal connector right */}
+            <div className="h-px w-4 md:w-8 border-t-2 border-dashed border-[#D1D5DB]" />
+
+            {/* Right spoke: Automations/Wild Ducks */}
+            <button
+              onClick={() => setSelectedNode(selectedNode === "wd" ? null : "wd")}
+              className={`border-2 rounded-lg px-4 py-3 text-center transition-all cursor-pointer shrink-0 ${
+                selectedNode === "wd" ? "shadow-md" : "hover:shadow-sm"
+              }`}
+              style={{
+                borderColor: selectedNode === "wd" ? orgNodes.wd.borderColor : "#FCD34D",
+                backgroundColor: selectedNode === "wd" ? orgNodes.wd.bgColor : "#FFFBEB",
+              }}
+            >
+              <p className="text-xs font-bold text-[#92400E]">Automations</p>
+              <p className="text-[10px] text-[#6B7280]">Wild Ducks</p>
+            </button>
+          </div>
+
+          {/* Vertical connector down */}
+          <div className="flex justify-center mt-1 mb-3">
+            <div className="w-px h-8 bg-[#D1D5DB]" />
+          </div>
+
+          {/* ── BTC bar + Incubator ── */}
+          <div className="flex gap-3 justify-center mb-3">
+            <button
+              onClick={() => setSelectedNode(selectedNode === "btc" ? null : "btc")}
+              className={`flex-1 max-w-[400px] border-2 rounded-lg px-5 py-4 text-center transition-all cursor-pointer ${
+                selectedNode === "btc" ? "shadow-md" : "hover:shadow-sm"
+              }`}
+              style={{
+                borderColor: selectedNode === "btc" ? orgNodes.btc.borderColor : "#FCA5A5",
+                backgroundColor: selectedNode === "btc" ? orgNodes.btc.bgColor : "#FEF2F2",
+              }}
+            >
+              <p className="text-sm font-bold text-[#991B1B]">Sales Engine &mdash; BTC</p>
+              <p className="text-[10px] text-[#6B7280]">
+                Sells all offers, earns commission, hands off fulfillment
+              </p>
+            </button>
+
+            <button
+              onClick={() => setSelectedNode(selectedNode === "inc" ? null : "inc")}
+              className={`border-2 rounded-lg px-4 py-4 text-center transition-all cursor-pointer ${
+                selectedNode === "inc" ? "shadow-md" : "hover:shadow-sm"
+              }`}
+              style={{
+                borderColor: selectedNode === "inc" ? orgNodes.inc.borderColor : "#FCD34D",
+                backgroundColor: selectedNode === "inc" ? orgNodes.inc.bgColor : "#FFFBEB",
+              }}
+            >
+              <p className="text-xs font-bold text-[#92400E]">Incubator</p>
+              <p className="text-[10px] text-[#6B7280]">Build, test, scale</p>
+            </button>
+          </div>
+
+          {/* ── Offer cards feeding into BTC ── */}
+          <div className="flex justify-center gap-2 mb-2">
+            <div className="flex justify-center">
+              <svg width="200" height="16" viewBox="0 0 200 16" className="text-[#FCA5A5]">
+                <path d="M30 14 L100 2 L170 14" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="4 3" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-center">
+            {[
+              { name: "VP offer", sub: "Original core offer" },
+              { name: "External offers", sub: "Revenue + lead pool" },
+              { name: "Incubator offers", sub: "As they mature" },
+            ].map((offer) => (
               <div
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: layer.color }}
-              />
-              <span className="text-xs font-medium text-[#6B7280]">
-                {layer.subtitle}
-              </span>
-            </div>
-            <h4 className="font-[family-name:var(--font-playfair)] font-bold text-[#111827] mb-2">
-              {layer.name}
-            </h4>
-            <p className="text-xs text-[#6B7280] leading-relaxed">
-              {layer.description}
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {layer.entities.map((e) => (
-                <span
-                  key={e}
-                  className="text-[10px] px-2 py-0.5 rounded border border-[#E5E7EB] text-[#6B7280] bg-[#F9FAFB]"
-                >
-                  {e}
+                key={offer.name}
+                className="border border-[#E5E7EB] bg-white rounded-lg px-3 py-2 text-center shadow-sm"
+              >
+                <p className="text-[10px] font-semibold text-[#374151]">{offer.name}</p>
+                <p className="text-[9px] text-[#9CA3AF]">{offer.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-[10px] text-[#9CA3AF] mt-3 italic">
+            BTC sells across all three offer types &mdash; 40K+ lead database routes to best fit
+          </p>
+
+          {/* Legend */}
+          <div className="flex justify-center gap-5 mt-6 text-[10px] text-[#9CA3AF]">
+            <span className="flex items-center gap-1.5">
+              <span className="w-4 h-px bg-[#D1D5DB] inline-block" /> Reporting
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-4 h-px border-t border-dashed border-[#D1D5DB] inline-block" /> Service
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-4 h-px bg-[#FCA5A5] inline-block" /> Offers feed into BTC
+            </span>
+          </div>
+        </div>
+
+        {/* ── Detail panel ── */}
+        <div className="lg:w-[340px] shrink-0">
+          {active ? (
+            <div
+              className="border-2 rounded-xl p-5 shadow-sm transition-all animate-fade-in"
+              style={{
+                borderColor: active.borderColor + "40",
+                backgroundColor: active.bgColor,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: active.color }}
+                />
+                <span className="text-xs font-medium text-[#6B7280]">
+                  {active.subtitle}
                 </span>
-              ))}
+              </div>
+              <h4 className="font-[family-name:var(--font-playfair)] text-lg font-bold text-[#111827] mb-3">
+                {active.name}
+              </h4>
+              <p className="text-sm text-[#374151] leading-relaxed">
+                {active.description}
+              </p>
             </div>
-          </button>
-        ))}
+          ) : (
+            <div className="border border-[#E5E7EB] rounded-xl p-5 bg-[#F9FAFB]">
+              <p className="text-sm text-[#9CA3AF] italic">
+                Click any node in the diagram to see details about its role and
+                how it connects to the rest of the organization.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Governance matrix */}
+      {/* ══ GOVERNANCE MATRIX ══ */}
       <h3 className="font-[family-name:var(--font-playfair)] text-xl font-bold mb-2 text-[#111827]">
         Governance matrix
       </h3>
@@ -194,19 +411,20 @@ export default function Governance() {
         Who owns, approves, supports, and is informed for each governance area.
       </p>
 
-      {/* Legend */}
       <div className="flex gap-4 mb-4 text-xs">
-        {(Object.entries(roleLabels) as [Role, typeof roleLabels[Role]][]).map(([key, config]) => (
-          <span key={key} className="flex items-center gap-1.5">
-            <span
-              className="w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center"
-              style={{ color: config.color, backgroundColor: config.bg }}
-            >
-              {key}
+        {(Object.entries(roleLabels) as [Role, (typeof roleLabels)[Role]][]).map(
+          ([key, config]) => (
+            <span key={key} className="flex items-center gap-1.5">
+              <span
+                className="w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center"
+                style={{ color: config.color, backgroundColor: config.bg }}
+              >
+                {key}
+              </span>
+              <span className="text-[#6B7280]">{config.label}</span>
             </span>
-            <span className="text-[#6B7280]">{config.label}</span>
-          </span>
-        ))}
+          )
+        )}
       </div>
 
       <div className="border border-[#E5E7EB] rounded-xl overflow-hidden mb-16">
@@ -231,7 +449,9 @@ export default function Governance() {
               {govRows.map((row, i) => (
                 <tr
                   key={row.area}
-                  className={`border-b border-[#E5E7EB] ${i % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]"}`}
+                  className={`border-b border-[#E5E7EB] ${
+                    i % 2 === 0 ? "bg-white" : "bg-[#FAFAFA]"
+                  }`}
                 >
                   <td className="px-4 py-3 text-[#374151] font-medium text-sm">
                     {row.area}
@@ -248,7 +468,7 @@ export default function Governance() {
         </div>
       </div>
 
-      {/* Key governance principles */}
+      {/* ══ KEY PRINCIPLES ══ */}
       <h3 className="font-[family-name:var(--font-playfair)] text-xl font-bold mb-6 text-[#111827]">
         Key principles
       </h3>
